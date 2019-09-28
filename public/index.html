@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>4 in a line</title>
+</head>
+<body>
+    <h1>Welcome to 4 in a line game</h1>
+
+    <div id="users"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        //var P2P = require('socket.io')(server);
+        //var io = require('socket.io-client').Server;
+        var socket = io();
+       // var p2p = new P2P(socket);
+
+       socket.on('welcome-client', function(data) {
+           console.log(data);
+       });
+
+       socket.on('send-users-list', function(data) {
+           var usersList = document.getElementById('users');
+           if(usersList != undefined) usersList.remove(users.childNodes);
+           data.forEach(user => {
+               var el = document.createElement('p');
+               el.innerText = user;
+               usersList.appendChild(el);
+           });
+       });
+
+    </script>
+</body>
+</html>
