@@ -5,33 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>4 in a line</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 </head>
 <body>
-    <h1>Welcome to 4 in a line game</h1>
 
-    <div id="users"></div>
+    <div class="container">
+        <h1 style="text-align: center">Welcome to 4-in-a-line game!</h1>
+        <div class="divider"></div>
+        <div class="row">
+            <div id="side-panel" class="col s4">
+                <ul class="collection with-header">
+                    <li class="collection-header center">
+                        <h4 id="panel-title">Players online</h4>
+                    </li>
+                    <div id="side-panel-online">
+                        <li class="collection-item center"><button class="btn waves-effect waves-light" type="submit" name="action" onclick="exit()">disconnect</button></li>
+                        <div id="users"></div>
+                        <li class="collection-item"><div>Alvin<a href="#!" class="secondary-content"><i class="material-icons">send</i></a></div></li>
+                        <li class="collection-item"><div>Alvin<a href="#!" class="secondary-content"><i class="material-icons">send</i></a></div></li>
+                        <li class="collection-item"><div>Alvin<a href="#!" class="secondary-content"><i class="material-icons">send</i></a></div></li>
+                    </div>
+                    <div id="side-panel-enter">
+                        <div class="input-field col s12">
+                            <input id="playername" type="text" class="validate">
+                            <label for="playername">Your name</label>
+                        </div>
+                        <div class="row center">
+                            <button class="btn waves-effect waves-light" type="submit" name="action" onclick="join()">join</button>
+                        </div>
+                    </div>
+                    
+                </ul>
+            </div>
+            <div id="board" class="col s8">
+                
+            </div>
+        </div>
+        <div id="users"></div>
+    </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-        //var P2P = require('socket.io')(server);
-        //var io = require('socket.io-client').Server;
-        var socket = io();
-       // var p2p = new P2P(socket);
-
-       socket.on('welcome-client', function(data) {
-           console.log(data);
-       });
-
-       socket.on('send-users-list', function(data) {
-           var usersList = document.getElementById('users');
-           if(usersList != undefined) usersList.remove(users.childNodes);
-           data.forEach(user => {
-               var el = document.createElement('p');
-               el.innerText = user;
-               usersList.appendChild(el);
-           });
-       });
-
-    </script>
+    <script src="/app.js"></script>
 </body>
 </html>
