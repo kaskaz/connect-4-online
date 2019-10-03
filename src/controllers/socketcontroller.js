@@ -20,7 +20,7 @@ class SocketApiImpl {
     }
 
     sendClientsList(socket) {
-        //socket.emit(API.SEND_USERS_LIST, new UserService().);
+        socket.emit(API.SEND_USERS_LIST, this.userService.readAllUsers());
     }
 }
 
@@ -37,14 +37,12 @@ export default class SocketApi {
     }
 
     init() {
-        this.io.on('connection', function(socket) {
+        this.io.on(API.CONNECTION, function(socket) {
             console.log('client connected is ' + socket.id);
             
             var api = new SocketApiImpl();
             api.welcomeClient(socket);
             api.sendClientsList(socket);
-        
-            socket.emit('send-users-list', );
         
             socket.on('disconnect', function() {
                 console.log('client disconnected: ' + socket.id);

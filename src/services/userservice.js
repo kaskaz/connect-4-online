@@ -12,6 +12,15 @@ export default class UserService {
         return this.users.get(userId);
     }
 
+    readAllUsers() {
+        return [
+            {id:1, name:'Jonas Brothers'},
+            {id:2, name:'Gipsy'},
+            {id:3, name:'Rafafel Nadal'},
+            {id:4, name:'Madonna'}
+        ];
+    }
+
     delete(userId) {
         this.users.delete(userId);
     }

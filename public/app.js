@@ -15,10 +15,8 @@ function join() {
     if (isPlayerNameFilled()) {
         changePanelTitle(PANEL_TITLE_ONLINE);
         hide(PANEL_ID_ENTER);
-        connect();
-        //populate
         show(PANEL_ID_ONLINE);
-          
+        connect();
     }
 }
 
@@ -61,14 +59,15 @@ function connect() {
         console.log(data);
     });
     
-    socket.on('send-users-list', function(data) {
-        var usersList = document.getElementById('users');
-        if(usersList != undefined) usersList.remove(users.childNodes);
-        data.forEach(user => {
-            var el = document.createElement('p');
-            el.innerText = user;
-            usersList.appendChild(el);
-        });
+    socket.on(SOCKET_API.SEND_USERS_LIST, function(data) {
+        var ul = document.getElementById('users');
+        if(ul != undefined){
+            while(ul.firstChild) 
+                ul.removeChild(ul.firstChild);
+            if(data) {
+                data.forEach(user => { addUserToList(ul, user) });
+            }
+        }
     });
 
 }
@@ -79,8 +78,30 @@ function disconnect() {
     }
 }
 
+function addUserToList(root, user) {
+    var li = document.createElement('li');
+    li.className = 'collection-item';
+    var div = document.createElement('div');
+    div.innerText = user.name;
+    var a = document.createElement('a');
+    a.href = '#!';
+    a.className = 'secondary-content';
+    var i = document.createElement('i');
+    i.className = 'material-icons';
+    i.innerText = 'send';
+    
+    li.append(div);
+    div.append(a);
+    a.append(i);
+    root.append(li);
+}
+
 exit();
+
 document.getElementById(PANEL_ID_ENTER)
     .getElementsByTagName('button')[0]
     .onclick = join;
-    
+   
+document.getElementById(PANEL_ID_ONLINE)
+    .getElementsByTagName('button')[0]
+    .onclick = exit;
