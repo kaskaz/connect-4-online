@@ -9,13 +9,17 @@ const PANEL_ID_ONLINE = 'side-panel-online';
 
 // var p2p = new P2P(socket);
 
-
+import {SOCKET_API} from './socketapi.js';
 
 function join() {
-    changePanelTitle(PANEL_TITLE_ONLINE);
-    hide(PANEL_ID_ENTER);
-    show(PANEL_ID_ONLINE);
-    connect();
+    if (isPlayerNameFilled()) {
+        changePanelTitle(PANEL_TITLE_ONLINE);
+        hide(PANEL_ID_ENTER);
+        connect();
+        //populate
+        show(PANEL_ID_ONLINE);
+          
+    }
 }
 
 function exit() {
@@ -23,6 +27,10 @@ function exit() {
     hide(PANEL_ID_ONLINE);
     show(PANEL_ID_ENTER);
     disconnect();
+}
+
+function isPlayerNameFilled() {
+    return document.getElementById('playername').value.length > 0;
 }
 
 function changePanelTitle(title) {
@@ -49,7 +57,7 @@ var socket;
 function connect() {
     socket = io();
 
-    socket.on('welcome-client', function(data) {
+    socket.on(SOCKET_API.WELCOME_CLIENT, function(data) {
         console.log(data);
     });
     
@@ -66,7 +74,13 @@ function connect() {
 }
 
 function disconnect() {
-    socket.disconnect();
+    if(socket) {
+        socket.disconnect();
+    }
 }
 
 exit();
+document.getElementById(PANEL_ID_ENTER)
+    .getElementsByTagName('button')[0]
+    .onclick = join;
+    
