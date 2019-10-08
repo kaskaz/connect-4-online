@@ -4,6 +4,8 @@ const PANEL_TITLE_ONLINE = 'Players online';
 const PANEL_ID_ENTER = 'side-panel-enter';
 const PANEL_ID_ONLINE = 'side-panel-online';
 
+const MAXSIZE = 7;
+
 //var P2P = require('socket.io')(server);
 //import { Server as io } from 'socket.io-client';
 
@@ -96,6 +98,120 @@ function addUserToList(root, user) {
     root.append(li);
 }
 
+
+const PLAYER_COLOR = 'lawngreen';
+const OPONENT_COLOR = 'tomato';
+const WINNER_COLOR = 'blue';
+var boardMap = new Map();
+var colContainerCount = new Map();
+
+function initBoard() {
+    var row = 0;
+    while ((++row)<(MAXSIZE+1)) {
+        var col = 0;
+        while((++col)<(MAXSIZE+1)) {
+            var cell = document.createElement('div');
+            var cellId = row + "" + col;
+            cell.id = cellId;
+            cell.className = 'cell';
+            cell.onclick = play;
+            document.getElementById('board').append(cell);
+            boardMap.set(cellId, new Cell(cellId));
+        }
+    }    
+}
+
+class Cell {
+
+    static OWNER_PLAYER = 1;
+    static OWNER_OPONENT = 2; 
+    
+    constructor(id) {
+        this.id = id;
+        this.selected = false;
+    }
+
+    isSelected() {
+        return this.selected;
+    }
+
+    isAvailable() {
+        return this.selected == false;
+    }
+
+    select(owner) {
+        this.selected = true;
+        this.owner = owner;
+    }
+
+    isOwner(owner) {
+        return this.owner == owner;
+    }
+    
+}
+
+function play(event) {
+    var id = event.currentTarget.id;
+    var col = parseInt(id.charAt(1));
+    var count = 1;
+
+    if(colContainerCount.get(col)) {
+        count = colContainerCount.get(col);
+        if (count == MAXSIZE) {
+            advertiseForAnotherColumn();
+            return;
+        } else {
+            colContainerCount.set(col, ++count);
+        }
+    } else {
+        colContainerCount.set(col, count);
+    }
+
+    var cellId = (MAXSIZE+1-count) + "" + col;
+    boardMap.get(cellId).select(Cell.OWNER_PLAYER);
+    updateCell(cellId, PLAYER_COLOR);
+    detectVictory(cellId);
+}
+
+function advertiseForAnotherColumn() {
+
+}
+
+function updateCell(id, color) {
+    document.getElementById(id)
+            .style.backgroundColor = color;
+}
+
+const DIRECTION_EAST = 1;
+
+function detectVictory(startPosition) {
+    if(recursiveDetectVictory(startPosition, 1, DIRECTION_EAST, Cell.OWNER_PLAYER)) {
+
+    }
+
+}
+
+function recursiveDetectVictory(position, count, direction, owner) {
+    var newPosition = (parseInt(position)+direction).toString();
+    if(boardMap.has(newPosition)) {
+        var cell = boardMap.get(newPosition);
+        if (cell.isSelected() && cell.isOwner(owner)) {
+            return (++count == 4) ? 
+                updateAndReturn(newPosition) : recursiveDetectVictory(newPosition, count, direction, owner);
+        }
+    } else {
+        return false;
+    }
+}
+
+function updateAndReturn(position) {
+    updateCell(position, WINNER_COLOR);
+    return true;
+}
+
+initBoard();
+updateCell(11,PLAYER_COLOR);
+updateCell(12,OPONENT_COLOR);
 exit();
 
 document.getElementById(PANEL_ID_ENTER)

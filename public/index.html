@@ -7,10 +7,11 @@
     <title>4 in a line</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1 style="text-align: center">Welcome to 4-in-a-line game!</h1>
+        <h1 style="text-align: center">Welcome to Connect-4 game!</h1>
         <div class="divider"></div>
         <div class="row">
             <div id="side-panel" class="col s4">
@@ -41,11 +42,10 @@
                             <button class="btn waves-effect waves-light" type="submit" name="action" onclick="join()">join</button>
                         </div>
                     </div>
-                    
                 </ul>
             </div>
-            <div id="board" class="col s8">
-                
+            <div id="board-container" class="col s8">
+                <div id="board"></div>
             </div>
         </div>
     </div>
