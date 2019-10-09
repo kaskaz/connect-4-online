@@ -113,6 +113,7 @@ function initBoard() {
             var cell = document.createElement('div');
             var cellId = row + "" + col;
             cell.id = cellId;
+            cell.innerText = cellId;
             cell.className = 'cell';
             cell.onclick = play;
             document.getElementById('board').append(cell);
@@ -182,26 +183,92 @@ function updateCell(id, color) {
             .style.backgroundColor = color;
 }
 
-const DIRECTION_EAST = 1;
+const DIRECTION_EAST        = 1;
+const DIRECTION_WEST        = -1;
+const DIRECTION_NORTH       = -10;
+const DIRECTION_SOUTH       = 10;
+const DIRECTION_NORTHEAST   = -9;
+const DIRECTION_SOUTHWEST   = 9;
+const DIRECTION_NORTHWEST   = -11;
+const DIRECTION_SOUTHEAST   = 11;
 
 function detectVictory(startPosition) {
-    if(recursiveDetectVictory(startPosition, 1, DIRECTION_EAST, Cell.OWNER_PLAYER)) {
 
+    var cellsToUpdate = [startPosition];
+    var intStartPosition = parseInt(startPosition);
+
+    var east = countCellsRecursively(startPosition, 0, DIRECTION_EAST, Cell.OWNER_PLAYER);
+    var west = countCellsRecursively(startPosition, 0, DIRECTION_WEST, Cell.OWNER_PLAYER);
+
+    if (east+west >= 3) {
+        fillCellsToUpdate(intStartPosition, east, DIRECTION_EAST, cellsToUpdate);
+        fillCellsToUpdate(intStartPosition, west, DIRECTION_WEST, cellsToUpdate);
+        cellsToUpdate.forEach(cell => updateCell(cell, WINNER_COLOR));
+        return;
+    }
+
+    var north = countCellsRecursively(startPosition, 0, DIRECTION_NORTH, Cell.OWNER_PLAYER);
+    var south = countCellsRecursively(startPosition, 0, DIRECTION_SOUTH, Cell.OWNER_PLAYER);
+
+    if (north+south >= 3) {
+        fillCellsToUpdate(intStartPosition, north, DIRECTION_NORTH, cellsToUpdate);
+        fillCellsToUpdate(intStartPosition, south, DIRECTION_SOUTH, cellsToUpdate);
+        cellsToUpdate.forEach(cell => updateCell(cell, WINNER_COLOR));
+        return;
+    }
+
+    var northeast = countCellsRecursively(startPosition, 0, DIRECTION_NORTHEAST, Cell.OWNER_PLAYER);
+    var southwest = countCellsRecursively(startPosition, 0, DIRECTION_SOUTHWEST, Cell.OWNER_PLAYER);
+    
+    if (northeast+southwest >= 3) {
+        fillCellsToUpdate(intStartPosition, northeast, DIRECTION_NORTHEAST, cellsToUpdate);
+        fillCellsToUpdate(intStartPosition, southwest, DIRECTION_SOUTHWEST, cellsToUpdate);
+        cellsToUpdate.forEach(cell => updateCell(cell, WINNER_COLOR));
+        return;
+    }
+
+    var northwest = countCellsRecursively(startPosition, 0, DIRECTION_NORTHWEST, Cell.OWNER_PLAYER);
+    var southeast = countCellsRecursively(startPosition, 0, DIRECTION_SOUTHEAST, Cell.OWNER_PLAYER);
+
+    if (northwest+southeast >= 3) {
+        fillCellsToUpdate(intStartPosition, northwest, DIRECTION_NORTHWEST, cellsToUpdate);
+        fillCellsToUpdate(intStartPosition, southeast, DIRECTION_SOUTHEAST, cellsToUpdate);
+        cellsToUpdate.forEach(cell => updateCell(cell, WINNER_COLOR));
+        return;
     }
 
 }
 
+function fillCellsToUpdate(defaultPosition, times, direction, cellArray) {
+    while (times) {
+        cellArray.push(defaultPosition+(Math.abs(direction*(times--))*Math.sign(direction)));
+    }
+}
+
 function recursiveDetectVictory(position, count, direction, owner) {
     var newPosition = (parseInt(position)+direction).toString();
+    var ret = false;
     if(boardMap.has(newPosition)) {
         var cell = boardMap.get(newPosition);
         if (cell.isSelected() && cell.isOwner(owner)) {
-            return (++count == 4) ? 
-                updateAndReturn(newPosition) : recursiveDetectVictory(newPosition, count, direction, owner);
+            ret = (++count == 4) ? 
+                updateAndReturn(newPosition) : (recursiveDetectVictory(newPosition, count, direction, owner) ?
+                    updateAndReturn(newPosition) : false);
         }
-    } else {
-        return false;
     }
+    return ret;
+}
+
+function countCellsRecursively(position, count, direction, owner) {
+    var newPosition = (parseInt(position)+direction).toString();
+    if (boardMap.has(newPosition)) {
+        var cell = boardMap.get(newPosition);
+        if (cell.isSelected() && cell.isOwner(owner)) {
+            return (++count == 3) ? 
+                count : countCellsRecursively(newPosition, count, direction, owner);
+        }
+    }
+    return count;
 }
 
 function updateAndReturn(position) {
