@@ -33,6 +33,10 @@ function isPlayerNameFilled() {
     return document.getElementById('playername').value.length > 0;
 }
 
+function getPlayerName() {
+    return document.getElementById('playername').value;
+}
+
 function changePanelTitle(title) {
     document.getElementById('panel-title')
         .innerText = title;
@@ -59,6 +63,8 @@ function connect() {
 
     socket.on(SOCKET_API.WELCOME_CLIENT, function(data) {
         console.log(data);
+        
+        socket.emit(SOCKET_API.USER_REGISTRATION, getPlayerName());
     });
     
     socket.on(SOCKET_API.SEND_USERS_LIST, function(data) {
@@ -113,7 +119,6 @@ function initBoard() {
             var cell = document.createElement('div');
             var cellId = row + "" + col;
             cell.id = cellId;
-            cell.innerText = cellId;
             cell.className = 'cell';
             cell.onclick = play;
             document.getElementById('board').append(cell);
@@ -277,8 +282,6 @@ function updateAndReturn(position) {
 }
 
 initBoard();
-updateCell(11,PLAYER_COLOR);
-updateCell(12,OPONENT_COLOR);
 exit();
 
 document.getElementById(PANEL_ID_ENTER)

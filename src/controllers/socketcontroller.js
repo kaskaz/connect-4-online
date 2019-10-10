@@ -6,21 +6,40 @@ const SocketIO = require('socket.io');
 //io.use(p2p);
 
 import UserService from "../services/userservice";
+import User from "../domain/user";
 
 import {SOCKET_API as API} from "../shared/socketapi";
 
 class SocketApiImpl {
 
-    constructor() {
-        this.userService = new UserService();
+    constructor(socket, userService) {
+        this.socket = socket;
+        this.userService = userService;
     }
 
-    welcomeClient(socket) {
-        socket.emit(API.WELCOME_CLIENT, 'Hello ' + socket.id);
+    welcomeClient() {
+        this.socket.emit(API.WELCOME_CLIENT, 'Hello ' + this.socket.id);
     }
 
-    sendClientsList(socket) {
-        socket.emit(API.SEND_USERS_LIST, this.userService.readAllUsers());
+    userRegistration() {
+        let _socket = this.socket;
+        let _userService = this.userService;
+        this.socket.on(API.USER_REGISTRATION, function(name) {
+            console.log('client registration for ' + name + ' (' + _socket.id + ')');
+            _userService.createOrUpdate(new User(name, _socket));
+
+            var users = _userService.readAllUsers();
+            var userData = [];
+            for(let user of users.values()) {
+                userData.push({
+                    id: user.id,
+                    name: user.name
+                });
+            }
+
+            _socket.emit(API.SEND_USERS_LIST, userData); 
+            _socket.broadcast.emit(API.SEND_USERS_LIST, userData);
+        });
     }
 }
 
@@ -28,21 +47,19 @@ export default class SocketApi {
 
     constructor(server) {
         this.io = SocketIO(server);
-
+        this.userService = new UserService();
         console.log('SocketIO started');
     }
 
-    sendClientsList(socket) {
-        socket.emit(API.SEND_USERS_LIST, socket.id);
-    }
-
     init() {
+        let _userService = this.userService;
+
         this.io.on(API.CONNECTION, function(socket) {
             console.log('client connected is ' + socket.id);
             
-            var api = new SocketApiImpl();
-            api.welcomeClient(socket);
-            api.sendClientsList(socket);
+            var api = new SocketApiImpl(socket, _userService);
+            api.welcomeClient();
+            api.userRegistration();
         
             socket.on('disconnect', function() {
                 console.log('client disconnected: ' + socket.id);
