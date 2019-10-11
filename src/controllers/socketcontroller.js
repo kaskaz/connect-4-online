@@ -24,22 +24,25 @@ class SocketApiImpl {
     userRegistration() {
         let _socket = this.socket;
         let _userService = this.userService;
-        this.socket.on(API.USER_REGISTRATION, function(name) {
+        this.socket.on(API.USER_REGISTRATION, (name) => {
             console.log('client registration for ' + name + ' (' + _socket.id + ')');
             _userService.createOrUpdate(new User(name, _socket));
-
-            var users = _userService.readAllUsers();
-            var userData = [];
-            for(let user of users.values()) {
-                userData.push({
-                    id: user.id,
-                    name: user.name
-                });
-            }
-
-            _socket.emit(API.SEND_USERS_LIST, userData); 
-            _socket.broadcast.emit(API.SEND_USERS_LIST, userData);
+            this.sendUserList();
         });
+    }
+
+    sendUserList() {
+        var users = this.userService.readAllUsers();
+        var userData = [];
+        for(let user of users.values()) {
+            userData.push({
+                id: user.id,
+                name: user.name
+            });
+        }
+
+        this.socket.emit(API.SEND_USERS_LIST, userData); 
+        this.socket.broadcast.emit(API.SEND_USERS_LIST, userData);
     }
 }
 
@@ -63,7 +66,8 @@ export default class SocketApi {
         
             socket.on('disconnect', function() {
                 console.log('client disconnected: ' + socket.id);
-                //socket.broadcast.emit('send-users-list',users.map(user => user.id));
+                _userService.delete(socket.id);  
+                api.sendUserList();
             });
         
         });
