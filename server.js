@@ -19,4 +19,4 @@ import SocketApi from "./src/controllers/socketcontroller";
 new SocketApi(server)
     .init();
 
-server.listen(3000);
+server.listen(process.env.PORT || 3000);
