@@ -19,3 +19,18 @@
     border-radius: 50%;
     margin: 5%;
 }
+
+.btn-challenge {
+    line-height: 1px;
+    height: auto;
+    padding: 10px;
+    margin-right: 5px;
+}
+
+.cup-icon {
+    width: 20px;
+}
+
+.score {
+    vertical-align: top;
+}

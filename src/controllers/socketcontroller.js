@@ -31,13 +31,47 @@ class SocketApiImpl {
         });
     }
 
+    challenge() {
+        let _socket = this.socket;
+        let _userService = this.userService;
+
+        this.socket.on(API.CHALLENGE_PLAYER, (userId) => {
+            console.log('player ' + _socket.id + ' challenged player ' + userId);
+            var challengedUser = _userService.read(userId);
+            var thiUser = _userService.read(_socket.id);
+            
+            challengedUser.addChallenge(_socket.id);
+            thiUser.addChallenged(userId);
+
+            this.sendUserList();
+        });
+    }
+
+    cancel() {
+        let _socket = this.socket;
+        let _userService = this.userService;
+
+        this.socket.on(API.CANCEL_CHALLENGE, (userId) => {
+            console.log('player ' + _socket.id + ' canceled challenge to player ' + userId);
+            var challengedUser = _userService.read(userId);
+            var thiUser = _userService.read(_socket.id);
+
+            challengedUser.removeChallenge(_socket.id);
+            thiUser.removeChallenged(userId);
+
+            this.sendUserList();
+        });
+    }
+
     sendUserList() {
         var users = this.userService.readAllUsers();
         var userData = [];
         for(let user of users.values()) {
             userData.push({
                 id: user.id,
-                name: user.name
+                name: user.name,
+                challenges: user.challenges,
+                challenged: user.challenged
             });
         }
 
@@ -63,6 +97,8 @@ export default class SocketApi {
             var api = new SocketApiImpl(socket, _userService);
             api.welcomeClient();
             api.userRegistration();
+            api.challenge();
+            api.cancel();
         
             socket.on('disconnect', function() {
                 console.log('client disconnected: ' + socket.id);

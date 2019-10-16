@@ -12,6 +12,7 @@ const MAXSIZE = 7;
 // var p2p = new P2P(socket);
 
 import {SOCKET_API} from './socketapi.js';
+import Connect4 from './connect4.js';
 
 function join() {
     if (isPlayerNameFilled()) {
@@ -57,14 +58,17 @@ function show(elementId) {
  */
 
 var socket;
+var game;
 
 function connect() {
     socket = io();
+    
 
     socket.on(SOCKET_API.WELCOME_CLIENT, function(data) {
         console.log(data);
         
         socket.emit(SOCKET_API.USER_REGISTRATION, getPlayerName());
+        game = new Connect4(socket.id);
     });
     
     socket.on(SOCKET_API.SEND_USERS_LIST, function(data) {
@@ -83,6 +87,7 @@ function connect() {
 function disconnect() {
     if(socket) {
         socket.disconnect();
+        game.printId();
     }
 }
 
@@ -91,19 +96,71 @@ function addUserToList(root, user) {
     li.className = 'collection-item';
     var div = document.createElement('div');
     div.innerText = user.name;
-    var a = document.createElement('a');
-    a.href = '#!';
-    a.className = 'secondary-content';
-    var i = document.createElement('i');
-    i.className = 'material-icons';
-    i.innerText = 'send';
+
+    var scoreWrapper = document.createElement('div');
+    scoreWrapper.className = 'secondary-content';
+
+    var icup = document.createElement('img');
+    icup.src = 'cup.png';
+    icup.alt = 'cup';
+    icup.className = 'cup-icon';
+
+    var score = document.createElement('span');
+    score.className = 'score';
+    score.innerText = '10';
+
+    scoreWrapper.append(icup);
+    scoreWrapper.append(score);
+
+    div.append(scoreWrapper);
+
+    if(user.id != game.getPlayerId()) {
+        createStatusButton(div, user);   
+    }
     
     li.append(div);
-    div.append(a);
-    a.append(i);
     root.append(li);
 }
 
+function createStatusButton(elem, user) {
+    var thisUserId = socket.id;
+    var button = document.createElement('a');
+    button.className = 'secondary-content waves-effect waves-light btn-small btn-challenge';
+    
+
+    if (user.challenges && user.challenges.find(id => id == thisUserId)) {
+        button.innerText = 'cancel';
+        button.classList.add('red');
+        button.addEventListener('click', (event) => {
+            cancelChallenge(user);
+        });
+    } else if (user.challenged && user.challenged.find(id => id == thisUserId)) {
+        button.innerText = 'accept';
+        button.classList.add('green');
+        button.addEventListener('click', (event) => {
+            acceptChallenge(user);
+        });
+    } else {
+        button.innerText = 'challenge';
+        button.addEventListener('click', (event) => {
+            challengePlayer(user);
+        });
+    }
+    
+    elem.append(button); 
+}
+
+function challengePlayer(user) {
+    socket.emit(SOCKET_API.CHALLENGE_PLAYER, user.id);
+}
+
+function cancelChallenge(user) {
+    socket.emit(SOCKET_API.CANCEL_CHALLENGE, user.id);
+}
+
+function acceptChallenge(user) {
+    console.log('challenge accepted!');
+}
 
 const PLAYER_COLOR = 'lawngreen';
 const OPONENT_COLOR = 'tomato';
@@ -129,9 +186,6 @@ function initBoard() {
 
 class Cell {
 
-    static OWNER_PLAYER = 1;
-    static OWNER_OPONENT = 2; 
-    
     constructor(id) {
         this.id = id;
         this.selected = false;
@@ -155,6 +209,10 @@ class Cell {
     }
     
 }
+
+Cell.prototype.OWNER_PLAYER = 1;
+Cell.prototype.OWNER_OPONENT = 2;
+
 
 function play(event) {
     var id = event.currentTarget.id;
