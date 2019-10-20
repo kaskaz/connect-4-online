@@ -1,7 +1,7 @@
 import {STATUS} from './status.js';
 
 export default class Connect4 {
-
+    
     constructor (playerId, playerName) {
         this.playerId = playerId;
         this.playerName = playerName;
@@ -27,4 +27,5 @@ export default class Connect4 {
     isPlaying() {
         return this.status == STATUS.PLAYING;
     }
+    
 }
