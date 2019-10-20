@@ -12,6 +12,7 @@ const MAXSIZE = 7;
 // var p2p = new P2P(socket);
 
 import {SOCKET_API} from './socketapi.js';
+import {STATUS} from './status.js';
 import Connect4 from './connect4.js';
 
 function join() {
@@ -62,7 +63,6 @@ var game;
 
 function connect() {
     socket = io();
-    
 
     socket.on(SOCKET_API.WELCOME_CLIENT, function(data) {
         console.log(data);
@@ -76,10 +76,15 @@ function connect() {
         if(ul != undefined){
             while(ul.firstChild) 
                 ul.removeChild(ul.firstChild);
+
             if(data) {
                 data.forEach(user => { addUserToList(ul, user) });
             }
         }
+    });
+
+    socket.on(SOCKET_API.CHALLENGE_ACCEPTED, function() {
+        game.setPlaying();
     });
 
 }
@@ -107,7 +112,7 @@ function addUserToList(root, user) {
 
     var score = document.createElement('span');
     score.className = 'score';
-    score.innerText = '10';
+    score.innerText = user.score;
 
     scoreWrapper.append(icup);
     scoreWrapper.append(score);
@@ -116,6 +121,9 @@ function addUserToList(root, user) {
 
     if(user.id != game.getPlayerId()) {
         createStatusButton(div, user);   
+    } else {
+        li.classList.add('blue-grey');
+        li.classList.add('lighten-4');
     }
     
     li.append(div);
@@ -123,29 +131,32 @@ function addUserToList(root, user) {
 }
 
 function createStatusButton(elem, user) {
-    var thisUserId = socket.id;
     var button = document.createElement('a');
-    button.className = 'secondary-content waves-effect waves-light btn-small btn-challenge';
+    button.className = 'secondary-content waves-effect waves-light btn-small btn-status';
     
-
-    if (user.challenges && user.challenges.find(id => id == thisUserId)) {
-        button.innerText = 'cancel';
-        button.classList.add('red');
-        button.addEventListener('click', (event) => {
-            cancelChallenge(user);
-        });
-    } else if (user.challenged && user.challenged.find(id => id == thisUserId)) {
-        button.innerText = 'accept';
-        button.classList.add('green');
-        button.addEventListener('click', (event) => {
-            acceptChallenge(user);
-        });
-    } else {
-        button.innerText = 'challenge';
-        button.addEventListener('click', (event) => {
-            challengePlayer(user);
-        });
-    }
+    if (user.status == STATUS.PLAYING) {
+        button.innerText = 'playing';
+        button.classList.add('disabled');
+    } else if(game.isAvailable()) {
+        if (user.challenges && user.challenges.find(id => id == game.getPlayerId())) {
+            button.innerText = 'cancel';
+            button.classList.add('red');
+            button.addEventListener('click', (event) => {
+                cancelChallenge(user);
+            });
+        } else if (user.challenged && user.challenged.find(id => id == game.getPlayerId())) {
+            button.innerText = 'accept';
+            button.classList.add('green');
+            button.addEventListener('click', (event) => {
+                acceptChallenge(user);
+            });
+        } else {
+            button.innerText = 'challenge';
+            button.addEventListener('click', (event) => {
+                challengePlayer(user);
+            });
+        }
+    } else return;
     
     elem.append(button); 
 }
@@ -159,7 +170,8 @@ function cancelChallenge(user) {
 }
 
 function acceptChallenge(user) {
-    console.log('challenge accepted!');
+    socket.emit(SOCKET_API.ACCEPT_CHALLENGE, user.id);
+    game.setPlaying();
 }
 
 const PLAYER_COLOR = 'lawngreen';

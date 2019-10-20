@@ -20,7 +20,7 @@
     margin: 5%;
 }
 
-.btn-challenge {
+.btn-status {
     line-height: 1px;
     height: auto;
     padding: 10px;
@@ -33,4 +33,5 @@
 
 .score {
     vertical-align: top;
+    margin-left: 5px
 }

@@ -63,6 +63,30 @@ class SocketApiImpl {
         });
     }
 
+    accept() {
+        let _socket = this.socket;
+        let _userService = this.userService;
+
+        this.socket.on(API.ACCEPT_CHALLENGE, (userId) => {
+            console.log('player ' + _socket.id + ' accepted challange from player ' + userId);            
+            var challenger = _userService.read(userId);
+            var thiUser = _userService.read(_socket.id);
+
+            // TODO check first due concurrent calls
+            // reset both users the challanges and challenged players
+            // go private!
+
+            challenger.changeStatus(User.PLAYING); 
+            thiUser.changeStatus(User.PLAYING);
+            this.notifyChallangeAccepted(challenger);
+            this.sendUserList();
+        });
+    }
+
+    notifyChallangeAccepted(user) {
+        user.socket.emit(API.CHALLENGE_ACCEPTED);
+    }
+
     sendUserList() {
         var users = this.userService.readAllUsers();
         var userData = [];
@@ -71,7 +95,9 @@ class SocketApiImpl {
                 id: user.id,
                 name: user.name,
                 challenges: user.challenges,
-                challenged: user.challenged
+                challenged: user.challenged,
+                status: user.status,
+                score: user.score
             });
         }
 
@@ -99,6 +125,7 @@ export default class SocketApi {
             api.userRegistration();
             api.challenge();
             api.cancel();
+            api.accept();
         
             socket.on('disconnect', function() {
                 console.log('client disconnected: ' + socket.id);
