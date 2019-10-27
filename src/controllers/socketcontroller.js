@@ -9,12 +9,14 @@ import UserService from "../services/userservice";
 import User from "../domain/user";
 
 import {SOCKET_API as API} from "../shared/socketapi";
+import Match from "../domain/match";
 
 class SocketApiImpl {
 
     constructor(socket, userService) {
         this.socket = socket;
         this.userService = userService;
+        this.matches = [];
     }
 
     welcomeClient() {
@@ -70,21 +72,32 @@ class SocketApiImpl {
         this.socket.on(API.ACCEPT_CHALLENGE, (userId) => {
             console.log('player ' + _socket.id + ' accepted challange from player ' + userId);            
             var challenger = _userService.read(userId);
-            var thiUser = _userService.read(_socket.id);
+            var challenged = _userService.read(_socket.id);
 
             // TODO check first due concurrent calls
-            // reset both users the challanges and challenged players
+            // reset both users the challenges and challenged players
             // go private!
 
             challenger.changeStatus(User.PLAYING); 
-            thiUser.changeStatus(User.PLAYING);
+            challenged.changeStatus(User.PLAYING);
+
+            var match;
+
+            if (Math.floor(Math.random()*1.5)) {
+                match = new Match(challenger, challenged);    
+            } else {
+                match = new Match(challenged, challenger);  
+            }
+            
+            match.start();
+
+            
             this.notifyChallangeAccepted(challenger);
             this.sendUserList();
-        });
-    }
 
-    notifyChallangeAccepted(user) {
-        user.socket.emit(API.CHALLENGE_ACCEPTED);
+            new Match(challenger, challenged)
+                .start(this.notifyTurn);
+        });
     }
 
     sendUserList() {
@@ -103,6 +116,14 @@ class SocketApiImpl {
 
         this.socket.emit(API.SEND_USERS_LIST, userData); 
         this.socket.broadcast.emit(API.SEND_USERS_LIST, userData);
+    }
+
+    notifyChallangeAccepted(user) {
+        user.socket.emit(API.CHALLENGE_ACCEPTED);
+    }
+
+    notifyTurn(player) {
+        player.socket.emit('turn')
     }
 }
 

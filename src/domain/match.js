@@ -1,8 +1,11 @@
+import Board from "../../public/board";
+
 export default class Match {
 
-    constructor(playerOne, playerTwo) {
+    constructor(playerOne, playerTwo, board) {
         this.playerOne = playerOne;
         this.playerTwo = playerTwo;
+        this.board = board;
         this.turn = playerOne;
         this.ended = false;
     }
@@ -13,6 +16,12 @@ export default class Match {
 
     finish() {
         this.ended = true;
+    }
+
+    start(turnNotification) {
+        88
+        // start count 
+            // receive call
     }
 
 }
